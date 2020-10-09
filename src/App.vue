@@ -46,6 +46,7 @@ export default {
   background: #EDEEF0;
   padding-bottom: 5px;
   transition: all 0.5s;
+  min-height: 100vh;
 }
 
 body {
@@ -58,7 +59,6 @@ body {
     width: 100%;
     margin: 0 auto;
     margin-top: 15px; 
-    min-height: 100vh;
     border-radius: 5px;
   }
 }
@@ -68,7 +68,6 @@ body {
     width: 50%;
     margin: 0 auto;
     margin-top: 15px; 
-    min-height: 100vh;
     border-radius: 5px;
   }
 }

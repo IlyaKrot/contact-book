@@ -5,18 +5,20 @@
     />
     <ul class="contacts">
       <li class="contacts__item" v-for="contact in contacts" :key="contact.id">
-        <p class="contacts__item_name">{{ contact.name }}</p>
-        <div class="contacts__item_email" v-if="contact.contacts.email">
-          <img src="../assets/email.png" alt="email: ">
-          <p>{{ contact.contacts.email }}</p>
-        </div>
-        <div class="contacts__item_phone" v-if="contact.contacts.phone">
-          <img src="../assets/phone.png" alt="phone: ">
-          <p> {{ contact.contacts.phone }}</p>
-        </div>
-        <div class="contacts__item_address" v-if="contact.contacts.address">
-          <img src="../assets/address.png" alt="address: ">
-          <p>{{ contact.contacts.address }}</p>
+        <div class="contacts__item-container" @click="openInfo(contact.id)">
+          <p class="contacts__item_name">{{ contact.name }}</p>
+          <div class="contacts__item_email" v-if="contact.contacts.email">
+            <img src="../assets/email.png" alt="email: ">
+            <p>{{ contact.contacts.email }}</p>
+          </div>
+          <div class="contacts__item_phone" v-if="contact.contacts.phone">
+            <img src="../assets/phone.png" alt="phone: ">
+            <p> {{ contact.contacts.phone }}</p>
+          </div>
+          <div class="contacts__item_address" v-if="contact.contacts.address">
+            <img src="../assets/address.png" alt="address: ">
+            <p>{{ contact.contacts.address }}</p>
+          </div>
         </div>
         <button class="contacts__item_remove" @click="openPopup(contact.id)">&times;</button>
       </li>
@@ -74,13 +76,13 @@ export default {
     }
   },
   mounted() {
-      if (localStorage.getItem('contacts')) {
-        try {
-          this.contacts = JSON.parse(localStorage.getItem('contacts'));
-        } catch (e) {
-          localStorage.removeItem('contacts');
-        }
+    if (localStorage.getItem('contacts')) {
+      try {
+        this.contacts = JSON.parse(localStorage.getItem('contacts'));
+      } catch (e) {
+        localStorage.removeItem('contacts');
       }
+    }
   },
   methods: {
     addContact(obj) {
@@ -119,6 +121,9 @@ export default {
     saveContacts() {
       const parsed = JSON.stringify(this.contacts);
       localStorage.setItem('contacts', parsed);
+    },
+    openInfo(id) {
+      this.$router.push({path: `/info/${id}`})
     }
   }
 }
@@ -127,7 +132,6 @@ export default {
 <style lang="less" scoped>
   .contacts__item {
     position: relative;
-    padding: 15px;
     color: #2c3e50;
     margin-bottom: 15px;
     background: #fff;
@@ -161,6 +165,11 @@ export default {
       }
     }
   }
+  .contacts__item-container {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+  }
   .contacts__item_name {
     font-size: 20px;
     font-weight: bold;
@@ -177,6 +186,7 @@ export default {
     height: 20px;
     color: #fff;
     border-radius: 5px;
+    z-index: 1;
 
     &:hover {
       cursor: pointer;

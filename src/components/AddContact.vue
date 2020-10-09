@@ -88,6 +88,7 @@ export default {
     margin-bottom: 15px;
     padding: 10px 15px;
     outline: none;
+    background:#FAFAFA;
     border: 1px solid #ccc;
   }
 
