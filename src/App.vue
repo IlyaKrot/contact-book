@@ -46,7 +46,7 @@ export default {
   background: #EDEEF0;
   padding-bottom: 5px;
   transition: all 0.5s;
-  min-height: 100vh;
+  min-height: 105vh;
 }
 
 body {

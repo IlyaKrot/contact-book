@@ -1,60 +1,92 @@
 <template>
-  <div class="contact-info-container" v-if="contact.length !== 0">
-    <form class="contact-info-container__form" ref="form" v-if="contact[0]">
-      <h3>CONTACT INFORMATION</h3>
-      <div class="contact-info-container__form_item name" >
-        <input type="text" :value="contact[0].name" disabled>
-        <span class="remove">&times;</span>
+  <div class="contact-info">
+    <div class="contact-info-container" v-if="contact.length !== 0">
+      <form class="contact-info-container__form" ref="form" v-if="contact[0]">
+        <h3>CONTACT INFORMATION</h3>
+        <div class="contact-info-container__form-item name">
+          <input type="text"
+            class="name-content"
+            :value="contact[0].name"
+            @keyup='updateName'
+            @paste='updateName'
+            @delete='updateName'>
+          <span class="name-submit" @click="submitName">OK</span>
+        </div>
+        <div class="contact-info-container__form-item" v-for="(item, key, index) in contact[0].contacts" :key="key">
+          <input type="text"
+            :value="item"
+            class="contact-content"
+            @keyup='updateContact(index)'
+            @paste='updateContact(index)'
+            @delete='updateContact(index)'
+          >
+          <span class="contact-remove"  @click="openPopup(key)">&times;</span>
+          <span class="contact-submit" @click="submitContact(key, index)">OK</span>
+        </div>
+        <div class="contact-info-container__form-item" v-for="(field, key) in fields" :key="key">
+          <input type="text" 
+            class="field-content"
+            placeholder="enter name: value" 
+            @keyup='updateField(key)'
+            @paste='updateField(key)'
+            @delete='updateField(key)'
+          >
+          <span class="field-remove" @click="removeField(key)">&times;</span>
+          <span class="field-submit" @click="submitField(key)">OK</span>
+        </div>
+      </form>
+      <div class='contact-info-container__add-button'
+          @click='addField'>
+          <img src="../assets/plus.png" alt="plus"/>
       </div>
-      <div class="contact-info-container__form_item" v-for="(item, key) in contact[0].contacts" :key="key">
-        <input type="text" :value="item" disabled>
-        <span class="remove">&times;</span>
-      </div>
-      <div class="contact-info-container__form_item" v-for="(field, key) in fields" :key="key">
-        <input type="text" 
-          class="field-content"
-          placeholder="enter name: value" 
-          @keyup='updateField(key)'
-          @blur='updateField(key)'
-          @paste='updateField(key)'
-          @delete='updateField(key)'
-        >
-        <span class="remove">&times;</span>
-        <span class="submit" @click="submitField(key)">OK</span>
-      </div>
-    </form>
-    <div class='contact-info-container__add-button'
-        @click='addField'>
-        <img src="../assets/plus.png" alt="plus"/>
+      <button @click="saveContacts">SAVE</button>
     </div>
-    <button>SAVE</button>
+    <div class="contact-info__save-info" ref="save">
+        <p ref="saveTitle">Сhanges saved successfully!</p>
+        <div><router-link class="router-link" to="/">go back</router-link> or <p class="discard" @click="discardChanges">discard changes</p></div>
+    </div>
+    <div ref='rm' class="popup-remove-contact">
+        <PopupRemoveContact
+            :contactKey = 'key'
+            @cancel-delete = 'cancelDelete'
+            @confirm-delete = 'confirmDelete'
+          />
+    </div>
   </div>
 </template>
 
 <script>
+import PopupRemoveContact from '@/components/PopupRemoveContact.vue'
+
 export default {
   name: 'ContactInfo',
+  components: {
+    PopupRemoveContact
+  },
   data() {
     return {
+      contacts: [],
+      contactsBefore: [],
       contact: [],
-      fields: []
+      fields: [],
+      key: ''
     }
   },
   mounted() {
-    if (localStorage.getItem('contacts')) {
-      try {
-        this.contact = JSON.parse(localStorage.getItem('contacts'));
-      } catch (e) {
-        localStorage.removeItem('contacts');
-      }
-    }
     this.getContact()
     window.scroll(0, 0);
   },
   methods: {
     getContact() {
-      this.contact = this.contact.filter(c => c.id == this.$route.params.id)
-      console.log(this.$route.params.id, this.contact)
+      if (localStorage.getItem('contacts')) {
+        try {
+          this.contacts = JSON.parse(localStorage.getItem('contacts'));
+        } catch (e) {
+          localStorage.removeItem('contacts');
+        }
+      }
+      this.contactsBefore = JSON.parse(JSON.stringify(this.contacts));
+      this.contact = this.contacts.filter(c => c.id == this.$route.params.id)
     },
     addField() {
       this.fields.push({
@@ -62,22 +94,99 @@ export default {
         value: 'value'
       })
     },
+    updateName() {
+      this.$el.querySelector('.name-submit').style = 'display: block'
+    },
+    submitName() {
+      this.contact[0].name = this.$el.querySelector('.name-content').value
+      this.$el.querySelector('.name-submit').style = 'display: none'
+    },
+    updateContact(index) {
+      let submit = this.$el.querySelectorAll('.contact-submit')
+      submit[index].style = 'display: block'
+    },
+    submitContact(id, index) {
+      let content = this.$el.querySelectorAll('.contact-content');
+      this.contact[0].contacts[id] = content[index].value
+      let submit = this.$el.querySelectorAll('.contact-submit')
+      submit[index].style = 'display: none'
+    },
+    removeField(id) {
+      this.fields.splice(id, 1);
+    },
     updateField(id) {
-      let content = this.$el.querySelector('.field-content').value;
-      let submit = this.$el.querySelector('.submit')
+      let content = this.$el.querySelectorAll('.field-content')
+      content = content[id].value
+      let submit = this.$el.querySelectorAll('.field-submit')
       if (content.indexOf(':') > 0) {
-        submit.style = 'display: block'
+        submit[id].style = 'display: block'
         content = content.split(':')
         this.fields[id].name = content[0].trim();
         this.fields[id].value = content[1].trim();
       } else {
-        submit.style = 'display: none'
+        submit[id].style = 'display: none'
       }
     },
     submitField(id) {
       this.contact[0].contacts[this.fields[id].name] = this.fields[id].value
-      console.log(this.contact[0].contacts)
-    }
+      let submit = this.$el.querySelectorAll('.field-submit')
+      submit[id].style = 'display: none'
+      this.$forceUpdate();
+      this.fields.pop();
+    },
+    saveContacts() {
+      let name = this.$el.querySelector('.name-content')
+      this.contact[0].name = name.value
+      const parsed = JSON.stringify(this.contacts);
+      localStorage.setItem('contacts', parsed);
+      this.$refs.save.setAttribute(
+        'style',
+        'transform: translateY(0px); opacity: 1'
+      )
+      this.$refs.saveTitle.setAttribute(
+        'style',
+        'opacity: 1'
+      )
+      setTimeout(() => {
+        this.$refs.saveTitle.setAttribute(
+          'style',
+          'opacity: 0'
+        )
+      }, 2000)
+    },
+    discardChanges() {
+      const parsed = JSON.stringify(this.contactsBefore);
+      localStorage.setItem('contacts', parsed);
+      this.getContact();
+    },
+    openPopup(key) {
+      this.key = key
+      this.$refs.rm.setAttribute(
+        'style',
+        'position: sticky; transform: translate(0, 0); opacity: 1; z-index: 3;'
+      )
+    },
+    closePopup() {
+      this.key = '';
+      this.$refs.rm.setAttribute(
+        'style',
+        'position: sticky; transform: translate(0, 50px); opacity: 0;'
+      )
+      setTimeout(() => {
+        this.$refs.rm.setAttribute(
+          'style',
+          'position: absolute; z-index: -1;'
+        )
+      }, 500)
+    },
+    cancelDelete() {
+      this.closePopup()
+    },
+    confirmDelete(key) {
+      delete this.contact[0].contacts[key]
+      this.$forceUpdate();
+      this.closePopup()
+    },
   }
 }
 </script>
@@ -90,6 +199,7 @@ export default {
     display: flex;
     flex-direction: column;
     margin-bottom: 15px;
+    z-index: 2;
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 0 20px -10px gray;
@@ -128,14 +238,16 @@ export default {
     }
   }
 
-  .contact-info-container__form_item {
+  .contact-info-container__form-item {
     position: relative;
     display: inline;
 
-    .submit {
+    .contact-submit,
+    .field-submit,
+    .name-submit {
+      display: none;
       position: absolute;
       opacity: 0;
-      display: none;
       margin: 0;
       padding: 0;
       top: -3px;
@@ -145,7 +257,7 @@ export default {
       padding: 5px;
       color: #fff;
       border-radius: 5px;
-      z-index: 1;
+      // z-index: 1;
       transition: all 0.5s;
 
       &:hover {
@@ -153,7 +265,8 @@ export default {
       }
     }
 
-    .remove {
+    .contact-remove,
+    .field-remove {
       position: absolute;
       opacity: 0;
       top: 1px;
@@ -173,8 +286,11 @@ export default {
       }
     }
 
-    &:hover .remove,
-    &:hover .submit{
+    &:hover .contact-remove,
+    &:hover .field-remove,
+    &:hover .contact-submit,
+    &:hover .field-submit,
+    &:hover .name-submit{
       opacity: 0.8;
     }
   }
@@ -198,11 +314,6 @@ export default {
       color: #2c3e50;
       cursor: text;
     }
-
-    &:focus .submit,
-    &:focus .remove {
-      opacity: 0.8;
-    }
   }
 
   button {
@@ -225,6 +336,44 @@ export default {
 
     &:active {
       box-shadow: 0 0 0 0 gray;
+    }
+  }
+
+  .popup-remove-contact {
+    position: absolute;
+    bottom: 0;
+    z-index: -1;
+    margin: 0 auto;
+    margin-bottom: 15px;
+    transform: translate(0, 50px);
+    width: 50%;
+    height: 30%;
+    opacity: 0;
+    transition: all 0.5s;
+  }
+
+  .contact-info__save-info {
+    padding: 15px;
+    opacity: 0;
+    transform: translateY(-100px);
+    transition: all 0.5s;
+
+    :first-child {
+      color: #42b983;
+      opacity: 0;
+      transition: all 0.5s;
+    }
+
+    :last-child {
+      display: inline;
+    }
+
+    .router-link,
+    .discard {
+      color: #815A8E;
+      text-decoration: underline;
+      cursor: pointer;
+      opacity: 1;
     }
   }
 </style>

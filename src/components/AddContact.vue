@@ -2,9 +2,13 @@
   <div class="add-contact-container">
     <h3>ADD CONTACT</h3>
     <form class="add-contact-container__form" @submit.prevent="addContact">
-      <input type="text" class="add-contact-container__form_name" placeholder="name" v-model="name"><br>
-      <textarea class="add-contact-container__form_contacts" cols="30" rows="10" v-model="contacts" placeholder="email: xxx@xxxx.xxx; phone: x xxx-xxx-xx-xx; ..."></textarea><br>
-      <button ref="submit" class="add-contact-container__form_submit" type="submit">ADD</button>
+      <input type="text" class="add-contact-container__form-item name" placeholder="name" v-model="name">
+      <div class="add-contact-container__form-item container">
+        <input type="email" class="add-contact-container__form-item-half email" placeholder="email" v-model="email">
+        <input type="number" class="add-contact-container__form-item-half phone" placeholder="phone" v-model="phone">
+      </div>
+      <textarea class="add-contact-container__form-item other" cols="30" rows="6" v-model="other" placeholder="address: xxxxxxx; zip: xxxxx; ..."></textarea><br>
+      <button ref="submit" class="add-contact-container__form-submit" type="submit">ADD</button>
     </form>
   </div>
 </template>
@@ -15,40 +19,50 @@ export default {
   data() {
     return {
       name: '',
-      contacts: '',
+      email: '',
+      phone: '',
+      other: ''
     }
   },
   methods: {
     addContact() {
-      if (this.name.length && this.contacts.length) {
-        let parseContact = {};
-        for (let i of this.contacts.split(';')) {
-          for (let j = 1; j <= i.split(':').length; j += 2) {
-            parseContact[i.split(':')[j - 1].trim()] = i.split(':')[j].trim()
-          }
-        }
+      if (this.name.length && (this.email.length || this.phone.length)) {
         const newContact = {
           id: Date.now(),
           name: this.name,
-          contacts: parseContact
+          contacts: {}
         }
-        console.log(newContact)
+        this.email.length ? newContact.contacts['email'] = this.email : false
+        this.phone.length ? newContact.contacts['phone'] = this.phone : false
+        if (this.other.indexOf(':') > 0) {
+          for (let i of this.other.split(';')) {
+            for (let j = 1; j <= i.split(':').length; j += 2) {
+              newContact.contacts[i.split(':')[j - 1].trim()] = i.split(':')[j].trim()
+            }
+          }
+        }
         this.$emit('add-contact', newContact)
-        this.name = this.contacts = '';
+        this.name = this.email = this.phone = this.other = '';
         this.added()
       } else {
         this.error()
       }
     },
     added() {
-      console.log(this.$refs)
       this.$refs.submit.textContent = 'ADDED!'
+      this.$refs.submit.setAttribute(
+        'style',
+        'background-color: #55e7a5'
+      )
       setTimeout(() => {
         this.$refs.submit.textContent = 'ADD'
-      }, 3000)
+        this.$refs.submit.setAttribute(
+        'style',
+        'background-color: #42b983'
+      )
+      }, 1000)
     },
     error() {
-      console.log(this.$refs)
       this.$refs.submit.textContent = 'ERROR!'
       this.$refs.submit.setAttribute(
         'style',
@@ -81,26 +95,54 @@ export default {
     text-decoration: underline;
   }
 
-  input, textarea {
-    border-radius: 5px;
+  .add-contact-container__form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .add-contact-container__form-item {
     width: 50%;
     margin: 0 auto;
     margin-bottom: 15px;
-    padding: 10px 15px;
+  }
+
+  .add-contact-container__form-item-half {
+    width: 100%;
+  }
+
+  .email {
+    margin-left: -15px;
+  }
+
+  .phone {
+    margin-right: -15px;
+    margin-left: 15px;
+  }
+
+  input, textarea {
     outline: none;
     background:#FAFAFA;
     border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px 15px;
   }
 
   textarea {
     resize: none;
   }
 
-  button {
+  .add-contact-container__form-submit {
     border-radius: 5px;
+    margin: 0 auto;
     margin-bottom: 15px;
-    padding: 15px 50px;
+    padding: 15px 0;
     outline: none;
+    width: 30%;
     border: none;
     background: #42b983;
     color: #fff; 

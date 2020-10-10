@@ -7,18 +7,10 @@
       <li class="contacts__item" v-for="contact in contacts" :key="contact.id">
         <div class="contacts__item-container" @click="openInfo(contact.id)">
           <p class="contacts__item_name">{{ contact.name }}</p>
-          <div class="contacts__item_email" v-if="contact.contacts.email">
-            <img src="../assets/email.png" alt="email: ">
-            <p>{{ contact.contacts.email }}</p>
-          </div>
-          <div class="contacts__item_phone" v-if="contact.contacts.phone">
-            <img src="../assets/phone.png" alt="phone: ">
-            <p> {{ contact.contacts.phone }}</p>
-          </div>
-          <div class="contacts__item_address" v-if="contact.contacts.address">
-            <img src="../assets/address.png" alt="address: ">
-            <p>{{ contact.contacts.address }}</p>
-          </div>
+          <div class="contacts__item_contacts" v-for="(value, key) in contact.contacts" :key="key">
+            <img v-if="key === 'email' || key === 'phone' || key === 'address'" :src="imgs[key]" :alt="key">
+            <p v-if="key === 'email' || key === 'phone' || key === 'address'">{{ value }}</p>
+          </div> 
         </div>
         <button class="contacts__item_remove" @click="openPopup(contact.id)">&times;</button>
       </li>
@@ -26,7 +18,6 @@
     <div ref='rm' class="popup-remove-contact">
       <PopupRemoveContact
         :contactId = 'contactId'
-        :contacts = 'contacts'
         @cancel-delete = 'cancelDelete'
         @confirm-delete = 'confirmDelete'
       />
@@ -46,33 +37,13 @@ export default {
   },
   data() {
     return {
-      contactId: 0,
-      contacts: [
-        {
-          id: 0,
-          name: 'Ilya',
-          contacts: {
-            email: 'ilya008800@yandex.ru',
-            phone: '89162273508'
-          }
-        },
-        {
-          id: 1,
-          name: 'Olya',
-          contacts: {
-            email: 'Olya228@yandex.ru',
-            phone: '88005553535'
-          }
-        },
-        {
-          id: 2,
-          name: 'Anna',
-          contacts: { 
-            email: 'Ann1337@gmail.com',
-            phone: '89153562684'
-          }
-        },
-      ]
+      contactId: -1,
+      imgs: {
+        'email': '/img/email.png',
+        'phone': '/img/phone.png',
+        'address': '/img/address.png'
+      },
+      contacts: []
     }
   },
   mounted() {
@@ -91,14 +62,13 @@ export default {
     },
     openPopup(id) {
       this.contactId = id
-      console.log(this.$refs.rm)
       this.$refs.rm.setAttribute(
         'style',
         'position: sticky; transform: translate(0, 0); opacity: 1; z-index: 1;'
       )
     },
     closePopup() {
-      this.contactId = 0;
+      this.contactId = -1;
       this.$refs.rm.setAttribute(
         'style',
         'position: sticky; transform: translate(0, 50px); opacity: 0;'

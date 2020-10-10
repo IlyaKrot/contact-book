@@ -1,8 +1,9 @@
 <template>
   <div class="remove-contact-container" ref="rem">
     <div class="remove-contact">
-      <h2>Delete contact?</h2>
-      <button @click="$emit('confirm-delete', contactId)" class="remove-contact__yes">Yes</button>
+      <h2>Are you sure?</h2>
+      <button v-if="contactId > -1" @click="$emit('confirm-delete', contactId)" class="remove-contact__yes">Yes</button>
+      <button v-if="contactKey" @click="$emit('confirm-delete', contactKey)" class="remove-contact__yes">Yes</button>
       <button @click="$emit('cancel-delete')" class="remove-contact__no">No</button>
     </div>
   </div>
@@ -13,6 +14,7 @@ export default {
   name: 'PopupRemoveContact',
   props: {
     contactId: Number,
+    contactKey: String
   },
 }
 </script>
