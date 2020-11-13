@@ -1,6 +1,6 @@
 # Contact Book
 
-![Alt text](/screen/Contact.jpg?raw=true "Contact Book")
+![Alt text](/screen/Contacts.jpg?raw=true "Contact Book")
 
 ## Project setup
 ```
